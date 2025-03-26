@@ -1,1 +1,1 @@
-pip install numpy notebook torch torchvision torchaudio scikit-learn pandas
+pip install numpy notebook torch torchvision torchaudio scikit-learn pandas tensorflow
