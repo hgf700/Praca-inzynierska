@@ -1,0 +1,110 @@
+[
+    {
+        "Date": "2024-04-01",
+        "ChangeId": "1",
+        "Employees": ["Anna Kowalska", "Jan Nowak"],
+        "ClientCounter": "35"
+    },
+    {
+        "Date": "2024-04-01",
+        "ChangeId": "2",
+        "Employees": ["Marta Wiśniewska", "Piotr Lewandowski", "Katarzyna Dąbrowska"],
+        "ClientCounter": "72"
+    },
+    {
+        "Date": "2024-04-01",
+        "ChangeId": "3",
+        "Employees": ["Tomasz Wójcik", "Agnieszka Kamińska"],
+        "ClientCounter": "42"
+    },
+    {
+        "Date": "2024-04-02",
+        "ChangeId": "1",
+        "Employees": ["Anna Kowalska", "Jan Nowak"],
+        "ClientCounter": "31"
+    },
+    {
+        "Date": "2024-04-02",
+        "ChangeId": "2",
+        "Employees": ["Marta Wiśniewska", "Piotr Lewandowski", "Katarzyna Dąbrowska"],
+        "ClientCounter": "68"
+    },
+    {
+        "Date": "2024-04-02",
+        "ChangeId": "3",
+        "Employees": ["Tomasz Wójcik", "Agnieszka Kamińska"],
+        "ClientCounter": "52"
+    },
+    {
+        "Date": "2024-04-03",
+        "ChangeId": "1",
+        "Employees": ["Anna Kowalska", "Jan Nowak"],
+        "ClientCounter": "28"
+    },
+    {
+        "Date": "2024-04-03",
+        "ChangeId": "2",
+        "Employees": ["Marta Wiśniewska", "Piotr Lewandowski", "Katarzyna Dąbrowska"],
+        "ClientCounter": "77"
+    },
+    {
+        "Date": "2024-04-03",
+        "ChangeId": "3",
+        "Employees": ["Tomasz Wójcik", "Agnieszka Kamińska"],
+        "ClientCounter": "45"
+    },
+    {
+        "Date": "2024-04-04",
+        "ChangeId": "1",
+        "Employees": ["Anna Kowalska", "Jan Nowak"],
+        "ClientCounter": "22"
+    },
+    {
+        "Date": "2024-04-04",
+        "ChangeId": "2",
+        "Employees": ["Marta Wiśniewska", "Piotr Lewandowski", "Katarzyna Dąbrowska"],
+        "ClientCounter": "66"
+    },
+    {
+        "Date": "2024-04-04",
+        "ChangeId": "3",
+        "Employees": ["Tomasz Wójcik", "Agnieszka Kamińska"],
+        "ClientCounter": "41"
+    },
+    {
+        "Date": "2024-04-05",
+        "ChangeId": "1",
+        "Employees": ["Anna Kowalska", "Jan Nowak"],
+        "ClientCounter": "43"
+    },
+    {
+        "Date": "2024-04-05",
+        "ChangeId": "2",
+        "Employees": ["Marta Wiśniewska", "Piotr Lewandowski", "Katarzyna Dąbrowska"],
+        "ClientCounter": "80"
+    },
+    {
+        "Date": "2024-04-05",
+        "ChangeId": "3",
+        "Employees": ["Tomasz Wójcik", "Agnieszka Kamińska", "Marek Zieliński"],
+        "ClientCounter": "55"
+    },
+    {
+        "Date": "2024-04-06",
+        "ChangeId": "1",
+        "Employees": ["Anna Kowalska", "Jan Nowak", "Marek Zieliński"],
+        "ClientCounter": "45"
+    },
+    {
+        "Date": "2024-04-06",
+        "ChangeId": "2",
+        "Employees": ["Marta Wiśniewska", "Piotr Lewandowski", "Katarzyna Dąbrowska"],
+        "ClientCounter": "73"
+    },
+    {
+        "Date": "2024-04-06",
+        "ChangeId": "3",
+        "Employees": ["Tomasz Wójcik", "Agnieszka Kamińska", "Marek Zieliński"],
+        "ClientCounter": "70"
+    }
+]

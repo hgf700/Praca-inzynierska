@@ -1,0 +1,95 @@
+﻿<Window x:Class="GeneticAlgorithm.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GeneticAlgorithm" 
+        xmlns:viewmodel="clr-namespace:GeneticAlgorithm.ViewModel"
+        mc:Ignorable="d"
+        Title="Work Schedule" Height="910" Width="auto"
+        SizeChanged="Window_SizeChanged"
+        Icon="/Icons/main.ico">
+    <Window.Resources>
+        <Style x:Key="CustomGridViewColumnHeaderStyle" TargetType="GridViewColumnHeader">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="10"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" 
+                   Text="Work Schedule" 
+                   VerticalAlignment="Center" 
+                   HorizontalAlignment="Center" 
+                   FontSize="30"
+                   Margin="10 20 10 10"/>
+
+        <Button Grid.Column="1" 
+                Grid.Row="0" 
+                Content="Employees" 
+                Background="#9ed5d9"
+                Click="showEmployees"/>
+
+        <Button Grid.Column="2" 
+                Grid.Row="0" 
+                Content="Employees preferences" 
+                Background="#f5e949"
+                Click="showEmployeesPreferences"/>
+
+        <Button Grid.Column="3" 
+                Grid.Row="0" 
+                Content="Generate" 
+                Click="OpenNewTab"/>
+
+        <ListView x:Name="WorkScheduleListView"
+                  Grid.ColumnSpan="4" 
+                  ItemsSource="{Binding WorkSchedules}" 
+                  Margin="15"
+                  Grid.Row="1" 
+                  Width="auto">
+            <ListView.View>
+                <GridView ColumnHeaderContainerStyle="{StaticResource CustomGridViewColumnHeaderStyle}">
+                    <GridViewColumn Header="Date" 
+                                    DisplayMemberBinding="{Binding FormattedDate}"/>
+                    <GridViewColumn Header="Day" DisplayMemberBinding="{Binding DayOfWeek}"/>
+                    <GridViewColumn Header="Change ID" DisplayMemberBinding="{Binding ChangeId}"/>
+                    <GridViewColumn Header="Client Counter" DisplayMemberBinding="{Binding ClientCounter}"/>
+                    <GridViewColumn Header="Employees">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding Employees}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="LightGray" Margin="2" Padding="4">
+                                                <TextBlock Text="{Binding}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Employees Counter" DisplayMemberBinding="{Binding EmployeeCounter}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

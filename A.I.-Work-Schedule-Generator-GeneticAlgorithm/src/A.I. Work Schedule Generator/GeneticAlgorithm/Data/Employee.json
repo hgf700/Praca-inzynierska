@@ -1,0 +1,58 @@
+[
+    {
+        "EmployeeId": "1",
+        "Name": "Anna",
+        "LastName": "Kowalska",
+        "Email": "anna.kowalska@example.com",
+        "PhoneNumber": "+48 123 456 789"
+    },
+    {
+        "EmployeeId": "2",
+        "Name": "Jan",
+        "LastName": "Nowak",
+        "Email": "jan.nowak@example.com",
+        "PhoneNumber": "+48 987 654 321"
+    },
+    {
+        "EmployeeId": "3",
+        "Name": "Marta",
+        "LastName": "Wiśniewska",
+        "Email": "marta.wisniewska@example.com",
+        "PhoneNumber": "+48 555 123 456"
+    },
+    {
+        "EmployeeId": "4",
+        "Name": "Piotr",
+        "LastName": "Lewandowski",
+        "Email": "piotr.lewandowski@example.com",
+        "PhoneNumber": "+48 777 888 999"
+    },
+    {
+        "EmployeeId": "5",
+        "Name": "Katarzyna",
+        "LastName": "Dąbrowska",
+        "Email": "katarzyna.dabrowska@example.com",
+        "PhoneNumber": "+48 111 222 333"
+    },
+    {
+        "EmployeeId": "6",
+        "Name": "Tomasz",
+        "LastName": "Wójcik",
+        "Email": "tomasz.wojcik@example.com",
+        "PhoneNumber": "+48 444 555 666"
+    },
+    {
+        "EmployeeId": "7",
+        "Name": "Agnieszka",
+        "LastName": "Kamińska",
+        "Email": "agnieszka.kaminska@example.com",
+        "PhoneNumber": "+48 666 777 888"
+    },
+    {
+        "EmployeeId": "8",
+        "Name": "Marek",
+        "LastName": "Zieliński",
+        "Email": "marek.zielinski@example.com",
+        "PhoneNumber": "+48 999 000 111"
+    }
+]

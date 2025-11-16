@@ -1,0 +1,82 @@
+[
+  {
+    "occupation": "Operator",
+    "experience": 1,
+    "preferences": [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+  },
+  {
+    "occupation": "Operator",
+    "experience": 0,
+    "preferences": [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]
+  },
+  {
+    "occupation": "Operator",
+    "experience": 2,
+    "preferences": [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Operator",
+    "experience": 2,
+    "preferences": [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Dispatcher",
+    "experience": 2,
+    "preferences": [0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0]
+  },
+  {
+    "occupation": "Dispatcher",
+    "experience": 0,
+    "preferences": [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+  },
+  {
+    "occupation": "Dispatcher",
+    "experience": 3,
+    "preferences": [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Dispatcher",
+    "experience": 0,
+    "preferences": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 0,
+    "preferences": [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 2,
+    "preferences": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 2,
+    "preferences": [0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 3,
+    "preferences": [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 0,
+    "preferences": [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 0,
+    "preferences": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 2,
+    "preferences": [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+  },
+  {
+    "occupation": "Engineer",
+    "experience": 3,
+    "preferences": [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+  }
+]
