@@ -26,16 +26,15 @@ namespace GeneticScheduling
         static int[] requiredWorkersPerShiftNumeric;
 
         static int[,] employeePreferences;
-
         public static class FitnessConstants
         {
-            public const int workersPerDayPenalty = 10;
-            public const int EmployeePreferenceMultiplier = 1;
+            public const int workersPerDayPenalty = 1;
+            public const int EmployeePreferenceMultiplier = 10;
         }
 
         static Program()
         {
-            string file = @"..\..\..\..\grafik_100_3x3.csv";
+            string file = @"..\..\..\..\grafik_7d_3s_10emp.csv";
 
             requiredWorkersPerShiftDisplay = ReadRequirementsFromFile(file);
             employeePreferences = ReadPreferencesFromFile(file);
@@ -50,19 +49,15 @@ namespace GeneticScheduling
         private static int[] ReadRequirementsFromFile(string fileName)
         {
             string[] lines = File.ReadAllLines(fileName);
-            string[] headers = lines[0].Split(',');
+            string[] headers = lines[0].Split(','); // nagłówki req
+            string[] values = lines[1].Split(',');  // wiersz z wartościami req
 
             List<int> reqValues = new List<int>();
-            for (int i = 1; i < lines.Length; i++)
+            for (int j = 0; j < headers.Length; j++)
             {
-                string[] values = lines[i].Split(',');
-                for (int j = 0; j < headers.Length; j++)
+                if (headers[j].StartsWith("req") && j < values.Length)
                 {
-                    if (headers[j].StartsWith("req_worker"))
-                    {
-                        if (j >= values.Length) break; // blokada wyjścia poza CSV
-                        reqValues.Add(int.Parse(values[j]));
-                    }
+                    reqValues.Add(int.Parse(values[j]));
                 }
             }
 
@@ -72,29 +67,35 @@ namespace GeneticScheduling
         private static int[,] ReadPreferencesFromFile(string fileName)
         {
             string[] lines = File.ReadAllLines(fileName);
-            string[] headers = lines[0].Split(',');
 
-            List<int> empCols = new List<int>();
+            // nagłówki pref znajdują się w linii 2 (index 2)
+            string[] headers = lines[2].Split(',');
+
+            List<int> prefCols = new List<int>();
             for (int i = 0; i < headers.Length; i++)
-                if (headers[i].StartsWith("emp"))
-                    empCols.Add(i);
+                if (headers[i].StartsWith("pref"))
+                    prefCols.Add(i);
 
-            int numEmployees = lines.Length - 1;
-            int numShifts = empCols.Count;
+            int numEmployees = lines.Length - 3; // linia 0 = nagłówek req, 1 = req, 2 = nagłówek pref
+            int numShifts = prefCols.Count;
+
             int[,] preferences = new int[numEmployees, numShifts];
 
-            for (int row = 1; row < lines.Length; row++)
+            for (int row = 3; row < lines.Length; row++) // wiersze z wartościami pref
             {
                 string[] values = lines[row].Split(',');
+                int empIndex = row - 3; // przesunięcie dla tablicy
+
                 for (int c = 0; c < numShifts; c++)
                 {
-                    if (empCols[c] >= values.Length) break; // blokada wyjścia poza CSV
-                    preferences[row - 1, c] = int.Parse(values[empCols[c]]);
+                    if (prefCols[c] < values.Length)
+                        preferences[empIndex, c] = int.Parse(values[prefCols[c]]);
                 }
             }
 
             return preferences;
         }
+
 
         static void Main(string[] args)
         {
@@ -287,8 +288,8 @@ namespace GeneticScheduling
                 for (int j = 0; j < numPrefShifts; j++)
                 {
                     if (j >= schedule.GetLength(1)) break; // blokada
-                    if (schedule[i, j] == 1)
-                        bonus += employeePreferences[i, j] * FitnessConstants.EmployeePreferenceMultiplier;
+                    if (schedule[i, j] == employeePreferences[i,j])
+                        bonus +=  FitnessConstants.EmployeePreferenceMultiplier;
                 }
             }
             return bonus;
