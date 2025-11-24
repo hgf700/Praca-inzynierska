@@ -9,7 +9,7 @@ namespace GeneticAlgorithm
     public class Program
     {
         private Random random = new Random();
-        private int maxEmployees = 4;
+        private int maxEmployees = 10;
         private int populationSize = 100;
         private int generations = 100;
         private double mutationRate = 0.05;
@@ -39,7 +39,7 @@ namespace GeneticAlgorithm
             employeePreferences = ReadPreferencesFromFile(file);
 
             numEmployees = employeePreferences.GetLength(0);
-            numActualDays = (int)(requiredWorkersPerShiftDisplay.Length / numShiftsPerDay);
+            numActualDays = requiredWorkersPerShiftDisplay.Length / numShiftsPerDay;
             numTimeSlots = numActualDays * numShiftsPerDay;
 
             requiredWorkersPerShiftNumeric = (int[])requiredWorkersPerShiftDisplay.Clone();
@@ -86,149 +86,139 @@ namespace GeneticAlgorithm
             return preferences;
         }
 
-        static string GetShiftHeaders(string delimiter)
+        private int[,] GenerateSchedule()
         {
-            StringBuilder sb = new StringBuilder();
-            for (int d = 1; d <= numActualDays; d++)
-            {
-                for (int s = 1; s <= numShiftsPerDay; s++)
-                {
-                    sb.Append($"D{d}S{s}");
-                    if (!(d == numActualDays && s == numShiftsPerDay))
-                        sb.Append(delimiter);
-                }
-            }
-            return sb.ToString();
+            int[,] schedule = new int[numEmployees, numTimeSlots];
+            for (int i = 0; i < numEmployees; i++)
+                for (int j = 0; j < numTimeSlots; j++)
+                    schedule[i, j] = random.Next(1, maxEmployees + 1);
+            return schedule;
         }
 
-        public List<int> Optimize(List<int> clientCounts, string logFile)
+        private int Fitness(int[,] schedule, List<int> clientCounts)
         {
-            List<List<int>> population = new List<List<int>>();
+            int totalError = 0;
+            for (int j = 0; j < numTimeSlots; j++)
+            {
+                int sum = 0;
+                for (int i = 0; i < numEmployees; i++)
+                    sum += schedule[i, j];
+                int ideal = Math.Max(1, clientCounts[j] / 20);
+                totalError += Math.Abs(sum - ideal);
+            }
+            return totalError;
+        }
+
+        private int[,] Crossover(int[,] parent1, int[,] parent2)
+        {
+            int[,] child = new int[numEmployees, numTimeSlots];
+            for (int i = 0; i < numEmployees; i++)
+            {
+                int split = random.Next(numTimeSlots);
+                for (int j = 0; j < split; j++)
+                    child[i, j] = parent1[i, j];
+                for (int j = split; j < numTimeSlots; j++)
+                    child[i, j] = parent2[i, j];
+            }
+            return child;
+        }
+
+        private void Mutate(int[,] individual)
+        {
+            for (int i = 0; i < numEmployees; i++)
+                for (int j = 0; j < numTimeSlots; j++)
+                    if (random.NextDouble() < mutationRate)
+                        individual[i, j] = random.Next(1, maxEmployees + 1);
+        }
+
+        private int[,] Select(List<int[,]> population, List<int> clientCounts)
+        {
+            var tournament = population.OrderBy(x => random.Next()).Take(5).ToList();
+            return tournament.OrderBy(x => Fitness(x, clientCounts)).First();
+        }
+
+        public int[,] Optimize(List<int> clientCounts, string logFile)
+        {
+            List<int[,]> population = new List<int[,]>();
             for (int i = 0; i < populationSize; i++)
-                population.Add(RandomIndividual(clientCounts.Count));
+                population.Add(GenerateSchedule());
 
             using StreamWriter writer = new StreamWriter(logFile, false, new UTF8Encoding(true));
-
-            // Nagłówek CSV
             writer.WriteLine("Generation;BestFitness;AverageFitness;MutationRate;MutationCount");
-
-            double mutationRateCurrent = mutationRate;
-            Random rnd = new Random();
 
             for (int gen = 0; gen < generations; gen++)
             {
                 int mutationCount = 0;
-
-                // Sortowanie populacji po fitness
                 population = population.OrderBy(ind => Fitness(ind, clientCounts)).ToList();
-
                 int bestFitness = Fitness(population[0], clientCounts);
                 double avgFitness = population.Average(ind => Fitness(ind, clientCounts));
 
-                // Tworzenie nowej populacji
-                List<List<int>> newPopulation = new List<List<int>>();
+                // Nowa populacja
+                List<int[,]> newPopulation = new List<int[,]>();
                 while (newPopulation.Count < populationSize)
                 {
                     var parent1 = Select(population, clientCounts);
                     var parent2 = Select(population, clientCounts);
-
                     var child = Crossover(parent1, parent2);
-
-                    // Mutacja
-                    for (int i = 0; i < child.Count; i++)
-                    {
-                        if (rnd.NextDouble() < mutationRateCurrent)
-                        {
-                            child[i] = rnd.Next(1, maxEmployees + 1);
-                            mutationCount++;
-                        }
-                    }
-
+                    Mutate(child);
                     newPopulation.Add(child);
                 }
 
                 population = newPopulation;
 
                 // Zapis do CSV
-                writer.WriteLine($"{gen + 1};{bestFitness};{Math.Round(avgFitness, 2).ToString().Replace('.', ',')};{mutationRateCurrent.ToString().Replace('.', ',')};{mutationCount}");
+                writer.WriteLine($"{gen + 1};{bestFitness};{Math.Round(avgFitness, 2).ToString().Replace('.', ',')};{mutationRate.ToString().Replace('.', ',')};{mutationCount}");
+            
+                
+            
+            }
 
-                // Zapis preferencji, wymagań i harmonogramu
-                string shiftHeaderString = GetShiftHeaders(";");
-
-                // Preferences
-                writer.WriteLine();
-                writer.WriteLine("Preferences");
-                writer.WriteLine($" ;{shiftHeaderString}");
-                for (int i = 0; i < numEmployees; i++)
-                {
-                    writer.Write($"P{i + 1};");
-                    for (int j = 0; j < numTimeSlots; j++)
-                    {
-                        if (j >= employeePreferences.GetLength(1)) break;
-                        writer.Write(employeePreferences[i, j]);
-                        if (j < numTimeSlots - 1) writer.Write(';');
-                    }
-                    writer.WriteLine();
-                }
-
-                // Requirements
-                writer.WriteLine();
-                writer.WriteLine("Requirements");
-                writer.WriteLine($" ;{shiftHeaderString}");
-                writer.Write("LP;");
+            // Preferences
+            writer.WriteLine();
+            writer.WriteLine("Preferences");
+            for (int i = 0; i < numEmployees; i++)
+            {
+                writer.Write($"P{i + 1};");
                 for (int j = 0; j < numTimeSlots; j++)
                 {
-                    if (j >= requiredWorkersPerShiftDisplay.Length) break;
-                    writer.Write(requiredWorkersPerShiftDisplay[j]);
+                    if (j >= employeePreferences.GetLength(1)) break;
+                    writer.Write(employeePreferences[i, j]);
                     if (j < numTimeSlots - 1) writer.Write(';');
                 }
                 writer.WriteLine();
-
-                // Schedule (z najlepszym osobnikiem)
-                writer.WriteLine();
-                writer.WriteLine("Schedule");
-                writer.WriteLine($" ;{shiftHeaderString}");
-                List<int> bestSchedule = population[0];
-                for (int i = 0; i < numEmployees; i++)
-                {
-                    writer.Write($"P{i + 1};");
-                    for (int j = 0; j < numTimeSlots; j++)
-                    {
-                        int index = i * numTimeSlots + j;
-                        if (index >= bestSchedule.Count) break;
-                        writer.Write(bestSchedule[index]);
-                        if (j < numTimeSlots - 1) writer.Write(';');
-                    }
-                    writer.WriteLine();
-                }
             }
+
+            // Requirements
+            writer.WriteLine();
+            writer.WriteLine("Requirements");
+            writer.Write("LP;");
+            for (int j = 0; j < numTimeSlots; j++)
+            {
+                if (j >= requiredWorkersPerShiftDisplay.Length) break;
+                writer.Write(requiredWorkersPerShiftDisplay[j]);
+                if (j < numTimeSlots - 1) writer.Write(';');
+            }
+            writer.WriteLine();
+
+            // Schedule (z najlepszym osobnikiem)
+            writer.WriteLine();
+            writer.WriteLine("Schedule");
+
+            int[,] finalSchedule = population[0];
+            for (int i = 0; i < numEmployees; i++)
+            {
+                writer.Write($"P{i + 1};");
+                for (int j = 0; j < numTimeSlots; j++)
+                {
+                    if (j >= finalSchedule.GetLength(1)) break; // blokada
+                    writer.Write(finalSchedule[i, j]);
+                    if (j < numTimeSlots - 1) writer.Write(';');
+                }
+                writer.WriteLine();
+            }
+
 
             return population[0];
-        }
-
-        private List<int> RandomIndividual(int size) => Enumerable.Range(0, size).Select(_ => random.Next(1, maxEmployees + 1)).ToList();
-
-        private int Fitness(List<int> individual, List<int> clientCounts)
-        {
-            int totalError = 0;
-            for (int i = 0; i < individual.Count; i++)
-            {
-                int ideal = Math.Max(1, clientCounts[i] / 20);
-                totalError += Math.Abs(individual[i] - ideal);
-            }
-            return totalError;
-        }
-
-        private List<int> Select(List<List<int>> population, List<int> clientCounts)
-        {
-            var tournament = population.OrderBy(x => random.Next()).Take(5).ToList();
-            return tournament.OrderBy(x => Fitness(x, clientCounts)).First();
-        }
-
-        private List<int> Crossover(List<int> parent1, List<int> parent2)
-        {
-            int split = random.Next(parent1.Count);
-            return parent1.Take(split).Concat(parent2.Skip(split)).ToList();
         }
 
         static string GetLogFileName()
@@ -252,17 +242,20 @@ namespace GeneticAlgorithm
             Program scheduler = new Program();
             Random randomClient = new Random();
 
-            int numShifts = numShiftsPerDay * numActualDays;
             List<int> clientCounts = new List<int>();
-            for (int i = 0; i < numShifts; i++)
+            for (int i = 0; i < numShiftsPerDay * numActualDays; i++)
                 clientCounts.Add(randomClient.Next(10, 100));
 
             string logFileName = GetLogFileName();
-            List<int> bestSchedule = scheduler.Optimize(clientCounts, logFileName);
+            int[,] bestSchedule = scheduler.Optimize(clientCounts, logFileName);
 
             Console.WriteLine("Najlepszy harmonogram:");
-            for (int i = 0; i < bestSchedule.Count; i++)
-                Console.WriteLine($"Zmiana {i + 1}: {bestSchedule[i]} pracowników (klienci: {clientCounts[i]})");
+            for (int i = 0; i < numEmployees; i++)
+            {
+                for (int j = 0; j < numTimeSlots; j++)
+                    Console.Write(bestSchedule[i, j] + " ");
+                Console.WriteLine();
+            }
 
             Console.WriteLine($"Log zapisany w: {logFileName}");
             Console.ReadKey();
