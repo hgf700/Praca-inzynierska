@@ -23,6 +23,8 @@ with open(filename, "w", newline="") as csvfile:
         for shift in range(1, shifts + 1):
             req_headers.append(f"req_{day}d_{shift}s")
             min_required = max(1, employees // 2)
+            if employees==1:
+                employees=2
             max_required = employees - 1
             req_values.append(random.randint(min_required, max_required))
 
