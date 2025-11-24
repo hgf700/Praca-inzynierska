@@ -91,7 +91,7 @@ namespace GeneticAlgorithm
             int[,] schedule = new int[numEmployees, numTimeSlots];
             for (int i = 0; i < numEmployees; i++)
                 for (int j = 0; j < numTimeSlots; j++)
-                    schedule[i, j] = random.Next(1, maxEmployees + 1);
+                    schedule[i, j] = random.Next(2);
             return schedule;
         }
 
@@ -128,7 +128,7 @@ namespace GeneticAlgorithm
             for (int i = 0; i < numEmployees; i++)
                 for (int j = 0; j < numTimeSlots; j++)
                     if (random.NextDouble() < mutationRate)
-                        individual[i, j] = random.Next(1, maxEmployees + 1);
+                        individual[i, j] = random.Next(2);
         }
 
         private int[,] Select(List<int[,]> population, List<int> clientCounts)
