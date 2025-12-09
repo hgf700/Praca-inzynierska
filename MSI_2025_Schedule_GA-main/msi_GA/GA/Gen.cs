@@ -9,18 +9,6 @@ using System.Threading.Tasks;
 
 namespace msi_GA.GA
 {
-
-    public enum OccupationType
-    {
-        Operator,
-        ControlTechnician,
-        MaintenanceEngineer,
-        RadiationTechnician,
-        ElectricalEngineer,
-        ChemistryTechnician
-    }
-
-
     public class Gen : Operations
     {
 
@@ -65,13 +53,6 @@ namespace msi_GA.GA
             else ValidHardConstraints = false;
 
         }
-
-        public Gen()
-        {
-
-
-        }
-
 
         public double PreferencesScore
         {

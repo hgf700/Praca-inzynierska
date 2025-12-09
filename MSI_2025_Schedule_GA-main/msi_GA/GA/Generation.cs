@@ -4,7 +4,6 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using msi_GA.Task_handling;
 using System.IO;
 using System.Text.Json;
 using msi_GA.GA;
@@ -74,7 +73,6 @@ namespace msi_GA.GA
         private readonly SaveManagment _saveManagment;
 
         // Neural Network --------------------------------------------------------------
-        private NeuralNetwork _mutationNetwork;
         public double hourWeight = 0.35; // Default weight for hours
 
         public int OrginalReproductionRate = 0;
@@ -103,21 +101,8 @@ namespace msi_GA.GA
 
 
 
-            _mutationNetwork = new NeuralNetwork(new[] { 6, 4, 2 })  // 8 inputs, 8 hidden, 2 output
-            {
-                Iterations = 500,
-                Alpha = 5.5,
-                L2_Regularization = true,
-                Lambda = 0.003,
-                Rnd = new Random(42)  // Fixed seed for reproducibility
-            };
 
             GenerateFirstGeneration(IsConstantAware);
-        }
-        public Generation()
-        {
-
-
         }
 
 
@@ -944,7 +929,6 @@ namespace msi_GA.GA
             }
 
             // Trenuj sieć
-            _mutationNetwork.Train(inputs.ToArray(), outputs.ToArray());
         }
 
 
@@ -990,13 +974,7 @@ namespace msi_GA.GA
 
 
 
-            MR_before = MutationRate;
-            double[] output = _mutationNetwork.Predict(globalFeatures);
-            MutationRate = Sigmoid(output[0]);
-
-            double value = Sigmoid(output[1]);
-            Console.WriteLine(value);
-            RR_before = ReprodcutionRate;
+            
             ReprodcutionRate = (int)Math.Floor(OrginalReproductionRate * value);
             Console.WriteLine(ReprodcutionRate);
             if (ReprodcutionRate < 4) ReprodcutionRate = 4;

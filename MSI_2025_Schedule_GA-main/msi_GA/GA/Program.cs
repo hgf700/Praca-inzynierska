@@ -2,7 +2,6 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Serialization;
 using msi_GA.GA;
-using msi_GA.Task_handling;
 
 namespace msi_GA.GA
 {
@@ -357,7 +356,7 @@ namespace msi_GA.GA
             }
         }
     }
-            }
+}
         
     
 

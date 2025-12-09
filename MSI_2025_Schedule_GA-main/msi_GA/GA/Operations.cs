@@ -28,14 +28,6 @@ namespace msi_GA.GA
 
         protected const int OccupationMatchedScore = 3;
 
-
-        public List<string> WorkTitles = new List<string>
-        {
-            "Operator",
-            "Dispatcher",
-            "Engineer"
-        };
-
         public double CalculateFitness(int[][] schedule)
         {
             // Use normalized scores exclusively
@@ -190,8 +182,7 @@ namespace msi_GA.GA
         {
             int points = 0;
 
-            foreach (string worktitle in WorkTitles)
-            {
+            
 
 
                 for (int i = 0; i < schedule[0].Length; i++)
@@ -202,8 +193,7 @@ namespace msi_GA.GA
                         if (schedule[j][i] == 1)
                         {
 
-                            if (Generation.Workers[j].Occupation == worktitle)
-                            {
+                            
 
                                 if (Generation.Workers[j].Experience != 0)
                                 {
@@ -221,7 +211,7 @@ namespace msi_GA.GA
                                 }
 
 
-                            }
+                            
 
 
 
@@ -240,8 +230,7 @@ namespace msi_GA.GA
 
 
 
-            return points * 1.0 / (schedule[0].Length * WorkTitles.Count);
-        }
+        
 
 
         protected virtual bool FindExperiencedPeer(int[][] schedule, int i, int j)
@@ -405,7 +394,7 @@ namespace msi_GA.GA
         public double CalculateMaxEachWorkerTypePerShifts(int[][] schedule)
         {
 
-            return schedule[0].Length * OccupationMatchedScore * WorkTitles.Count;
+            return schedule[0].Length * OccupationMatchedScore;
         }
         public double ShiftBreaksPerWorker(int[][] schedule, int i)
         {
@@ -463,8 +452,7 @@ namespace msi_GA.GA
         {
             
 
-            foreach (string worktitle in WorkTitles)
-            {
+            
 
 
                 for (int i = value; i < schedule[1].Length; i++)
@@ -475,8 +463,7 @@ namespace msi_GA.GA
                         if (schedule[j][i] == 1)
                         {
 
-                            if (Generation.Workers[j].Occupation == worktitle)
-                            {
+                            
 
                                 if (Generation.Workers[j].Experience != 0)
                                 {
@@ -494,8 +481,7 @@ namespace msi_GA.GA
                                 }
 
 
-                            }
-
+                            
 
 
                         }
@@ -506,7 +492,7 @@ namespace msi_GA.GA
                     }
 
 
-                }
+                
 
 
             }
