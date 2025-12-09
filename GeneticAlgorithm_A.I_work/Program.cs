@@ -6,10 +6,15 @@ using System.Text;
 
 namespace GeneticAlgorithm
 {
+    public static class FitnessConstants
+    {
+        public const int workersPerDayPenalty = 10;
+        public const int EmployeePreferenceMultiplier = 5;
+    }
+
     public class Program
     {
         private Random random = new Random();
-        private int maxEmployees = 10;
         private int populationSize = 100;
         private int generations = 100;
         private double mutationRate = 0.05;
@@ -24,7 +29,6 @@ namespace GeneticAlgorithm
 
         private static int[] requiredWorkersPerShiftDisplay;
         private static int[] requiredWorkersPerShiftNumeric;
-
         private static int[,] employeePreferences;
 
         static Program()
@@ -98,19 +102,65 @@ namespace GeneticAlgorithm
             return schedule;
         }
 
+        static int CalculateWorkersPenalty(int[,] schedule)
+        {
+            int penalty = 0;
+
+            for (int j = 0; j < numTimeSlots; j++)
+            {
+                if (j >= requiredWorkersPerShiftNumeric.Length)
+                    break;
+
+                int actualWorkers = 0;
+
+                for (int i = 0; i < numEmployees; i++)
+                    actualWorkers += schedule[i, j];
+
+                penalty += FitnessConstants.workersPerDayPenalty *
+                           Math.Abs(requiredWorkersPerShiftNumeric[j] - actualWorkers);
+            }
+
+            return penalty;
+        }
+
+        static int CalculatePreferenceBonus(int[,] schedule)
+        {
+            int bonus = 0;
+            int numPrefShifts = employeePreferences.GetLength(1);
+
+            for (int i = 0; i < numEmployees; i++)
+            {
+                for (int j = 0; j < numPrefShifts; j++)
+                {
+                    if (j >= schedule.GetLength(1))
+                        break;
+
+                    if (schedule[i, j] == employeePreferences[i, j])
+                        bonus += FitnessConstants.EmployeePreferenceMultiplier;
+                }
+            }
+            return bonus;
+        }
+
         private int Fitness(int[,] schedule, List<int> clientCounts)
         {
-            int totalError = 0;
+            int baseFitness = 0;
+
             for (int j = 0; j < numTimeSlots; j++)
             {
                 int sum = 0;
+
                 for (int i = 0; i < numEmployees; i++)
                     sum += schedule[i, j];
 
                 int ideal = Math.Max(1, clientCounts[j] / 20);
-                totalError += Math.Abs(sum - ideal);
+                baseFitness += Math.Abs(sum - ideal);
             }
-            return totalError;
+
+            int workerPenalty = CalculateWorkersPenalty(schedule);
+            int preferenceBonus = CalculatePreferenceBonus(schedule);
+
+            return baseFitness + workerPenalty - preferenceBonus;
         }
 
         private int[,] Crossover(int[,] parent1, int[,] parent2)
@@ -153,11 +203,13 @@ namespace GeneticAlgorithm
             for (int gen = 0; gen < generations; gen++)
             {
                 int mutationCount = 0;
+
                 population = population.OrderBy(ind => Fitness(ind, clientCounts)).ToList();
                 int bestFitness = Fitness(population[0], clientCounts);
                 double avgFitness = population.Average(ind => Fitness(ind, clientCounts));
 
                 List<int[,]> newPopulation = new List<int[,]>();
+
                 while (newPopulation.Count < populationSize)
                 {
                     var parent1 = Select(population, clientCounts);
@@ -174,26 +226,28 @@ namespace GeneticAlgorithm
 
             writer.WriteLine();
             writer.WriteLine("Preferences");
+
             for (int i = 0; i < numEmployees; i++)
             {
                 writer.Write($"P{i + 1};");
-                for (int j = 0; j < numTimeSlots; j++)
+                for (int j = 0; j < employeePreferences.GetLength(1); j++)
                 {
-                    if (j >= employeePreferences.GetLength(1)) break;
                     writer.Write(employeePreferences[i, j]);
-                    if (j < numTimeSlots - 1) writer.Write(';');
+                    if (j < employeePreferences.GetLength(1) - 1)
+                        writer.Write(';');
                 }
                 writer.WriteLine();
             }
 
             writer.WriteLine();
             writer.WriteLine("Requirements");
+
             writer.Write("LP;");
-            for (int j = 0; j < numTimeSlots; j++)
+            for (int j = 0; j < requiredWorkersPerShiftDisplay.Length; j++)
             {
-                if (j >= requiredWorkersPerShiftDisplay.Length) break;
                 writer.Write(requiredWorkersPerShiftDisplay[j]);
-                if (j < numTimeSlots - 1) writer.Write(';');
+                if (j < requiredWorkersPerShiftDisplay.Length - 1)
+                    writer.Write(';');
             }
             writer.WriteLine();
 
@@ -207,7 +261,8 @@ namespace GeneticAlgorithm
                 for (int j = 0; j < numTimeSlots; j++)
                 {
                     writer.Write(finalSchedule[i, j]);
-                    if (j < numTimeSlots - 1) writer.Write(';');
+                    if (j < numTimeSlots - 1)
+                        writer.Write(';');
                 }
                 writer.WriteLine();
             }
@@ -227,7 +282,6 @@ namespace GeneticAlgorithm
         static void Main(string[] args)
         {
             Program scheduler = new Program();
-
             Random randomClient = new Random();
 
             List<int> clientCounts = new List<int>();
