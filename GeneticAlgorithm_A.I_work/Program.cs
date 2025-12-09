@@ -92,7 +92,18 @@ namespace GeneticAlgorithm
             }
             return preferences;
         }
+        static int UnsolvedWorkerRequirmnts(int[,] schedule)
+        {
+            int workersPenalty = CalculateWorkersPenalty(schedule);
+            return workersPenalty;
+        }
 
+        static int UnsolvedFirmRequirmnts(int[,] schedule)
+        {
+            int preferenceBonus = CalculatePreferenceBonus(schedule);
+            int pref = preferenceBonus / 10;
+            return pref;
+        }
         private int[,] GenerateSchedule()
         {
             int[,] schedule = new int[numEmployees, numTimeSlots];
@@ -102,64 +113,58 @@ namespace GeneticAlgorithm
             return schedule;
         }
 
+        static int[] CalculateEmployeeFitness(int[,] schedule, int employeeIndex)
+        {
+            int numPref = employeePreferences.GetLength(1);
+            int[] bonus = new int[numPref];
+
+            for (int j = 0; j < numPref; j++)
+            {
+                if (schedule[employeeIndex, j] == employeePreferences[employeeIndex, j])
+                    bonus[j] = FitnessConstants.EmployeePreferenceMultiplier;
+                else
+                    bonus[j] = 0;
+            }
+
+            return bonus;
+        }
+
         static int CalculateWorkersPenalty(int[,] schedule)
         {
             int penalty = 0;
-
             for (int j = 0; j < numTimeSlots; j++)
             {
-                if (j >= requiredWorkersPerShiftNumeric.Length)
-                    break;
-
                 int actualWorkers = 0;
-
                 for (int i = 0; i < numEmployees; i++)
                     actualWorkers += schedule[i, j];
-
-                penalty += FitnessConstants.workersPerDayPenalty *
-                           Math.Abs(requiredWorkersPerShiftNumeric[j] - actualWorkers);
+                penalty += FitnessConstants.workersPerDayPenalty * Math.Abs(requiredWorkersPerShiftNumeric[j] - actualWorkers);
             }
-
             return penalty;
         }
 
         static int CalculatePreferenceBonus(int[,] schedule)
         {
             int bonus = 0;
-            int numPrefShifts = employeePreferences.GetLength(1);
-
             for (int i = 0; i < numEmployees; i++)
-            {
-                for (int j = 0; j < numPrefShifts; j++)
-                {
-                    if (j >= schedule.GetLength(1))
-                        break;
-
+                for (int j = 0; j < employeePreferences.GetLength(1); j++)
                     if (schedule[i, j] == employeePreferences[i, j])
                         bonus += FitnessConstants.EmployeePreferenceMultiplier;
-                }
-            }
             return bonus;
         }
 
         private int Fitness(int[,] schedule, List<int> clientCounts)
         {
             int baseFitness = 0;
-
             for (int j = 0; j < numTimeSlots; j++)
             {
                 int sum = 0;
-
                 for (int i = 0; i < numEmployees; i++)
                     sum += schedule[i, j];
-
                 int ideal = Math.Max(1, clientCounts[j] / 20);
                 baseFitness += Math.Abs(sum - ideal);
             }
-
             int workerPenalty = CalculateWorkersPenalty(schedule);
             int preferenceBonus = CalculatePreferenceBonus(schedule);
-
             return baseFitness + workerPenalty - preferenceBonus;
         }
 
@@ -191,12 +196,13 @@ namespace GeneticAlgorithm
             return tournament.OrderBy(x => Fitness(x, clientCounts)).First();
         }
 
-        public int[,] Optimize(List<int> clientCounts, string logFile)
+        public int[,] Optimize(List<int> clientCounts, string logFile, string resultFile)
         {
             List<int[,]> population = new List<int[,]>();
             for (int i = 0; i < populationSize; i++)
                 population.Add(GenerateSchedule());
 
+            // Writer 1 - logi, pozostaje bez zmian
             using StreamWriter writer = new StreamWriter(logFile, false, new UTF8Encoding(true));
             writer.WriteLine("Generation;BestFitness;AverageFitness;MutationRate;MutationCount");
 
@@ -209,7 +215,6 @@ namespace GeneticAlgorithm
                 double avgFitness = population.Average(ind => Fitness(ind, clientCounts));
 
                 List<int[,]> newPopulation = new List<int[,]>();
-
                 while (newPopulation.Count < populationSize)
                 {
                     var parent1 = Select(population, clientCounts);
@@ -218,56 +223,58 @@ namespace GeneticAlgorithm
                     Mutate(child);
                     newPopulation.Add(child);
                 }
-
                 population = newPopulation;
 
                 writer.WriteLine($"{gen + 1};{bestFitness};{Math.Round(avgFitness, 2).ToString().Replace('.', ',')};{mutationRate.ToString().Replace('.', ',')};{mutationCount}");
             }
 
-            writer.WriteLine();
-            writer.WriteLine("Preferences");
-
-            for (int i = 0; i < numEmployees; i++)
-            {
-                writer.Write($"P{i + 1};");
-                for (int j = 0; j < employeePreferences.GetLength(1); j++)
-                {
-                    writer.Write(employeePreferences[i, j]);
-                    if (j < employeePreferences.GetLength(1) - 1)
-                        writer.Write(';');
-                }
-                writer.WriteLine();
-            }
-
-            writer.WriteLine();
-            writer.WriteLine("Requirements");
-
-            writer.Write("LP;");
-            for (int j = 0; j < requiredWorkersPerShiftDisplay.Length; j++)
-            {
-                writer.Write(requiredWorkersPerShiftDisplay[j]);
-                if (j < requiredWorkersPerShiftDisplay.Length - 1)
-                    writer.Write(';');
-            }
-            writer.WriteLine();
-
-            writer.WriteLine();
-            writer.WriteLine("Schedule");
-
             int[,] finalSchedule = population[0];
+
+            // Writer 2 - poprawione wyświetlanie i zapis CSV
+            using StreamWriter writer2 = new StreamWriter(resultFile, false, new UTF8Encoding(true));
+            string header = GetShiftHeaders(",");
+            string[] headers = header.Split(',');
+
+            writer2.Write("Id,");
+            foreach (var h in headers) writer2.Write($"P_{h},");
+            foreach (var h in headers) writer2.Write($"FR_{h},");
+            foreach (var h in headers) writer2.Write($"S_{h},");
+            writer2.Write("worker_fitness,mismatchWorkerRequirments,mismatchFirmRequirmments\n");
+
             for (int i = 0; i < numEmployees; i++)
             {
-                writer.Write($"P{i + 1};");
+                writer2.Write($"{i},");
+                // Preferences
                 for (int j = 0; j < numTimeSlots; j++)
-                {
-                    writer.Write(finalSchedule[i, j]);
-                    if (j < numTimeSlots - 1)
-                        writer.Write(';');
-                }
-                writer.WriteLine();
+                    writer2.Write($"{(j < employeePreferences.GetLength(1) ? employeePreferences[i, j] : 0)},");
+                // Requirements
+                for (int j = 0; j < numTimeSlots; j++)
+                    writer2.Write($"{(j < requiredWorkersPerShiftDisplay.Length ? requiredWorkersPerShiftDisplay[j] : 0)},");
+                // Schedule
+                for (int j = 0; j < numTimeSlots; j++)
+                    writer2.Write($"{(j < finalSchedule.GetLength(1) ? finalSchedule[i, j] : 0)}{(j < numTimeSlots - 1 ? "," : "")}");
+                writer2.Write(",");
+
+                // Fitness i penalty
+                int fitness = CalculateEmployeeFitness(finalSchedule, i).Sum();
+                int unsolvedWorker = UnsolvedWorkerRequirmnts(finalSchedule);
+                int unsolvedFirm = UnsolvedFirmRequirmnts(finalSchedule);
+
+                writer2.Write($"{fitness},{unsolvedWorker},{unsolvedFirm}\n");
+
+                Console.WriteLine($"Pracownik {i}: Fitness={fitness}, UnsolvedWorker={unsolvedWorker}, UnsolvedFirm={unsolvedFirm}");
             }
 
-            return population[0];
+            return finalSchedule;
+        }
+
+        static string GetShiftHeaders(string delimiter)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int d = 1; d <= numActualDays; d++)
+                for (int s = 1; s <= numShiftsPerDay; s++)
+                    sb.Append($"D{d}S{s}{(d == numActualDays && s == numShiftsPerDay ? "" : delimiter)}");
+            return sb.ToString();
         }
 
         static string GetLogFileName()
@@ -275,8 +282,24 @@ namespace GeneticAlgorithm
             string logDirectory = "../../../logi";
             if (!Directory.Exists(logDirectory))
                 Directory.CreateDirectory(logDirectory);
-
             return Path.Combine(logDirectory, $"genetic_log.csv");
+        }
+
+        static string GetResultFileName()
+        {
+            string logDirectory = "../../../wyniki";
+            if (!Directory.Exists(logDirectory))
+                Directory.CreateDirectory(logDirectory);
+
+            int logNumber = 1;
+            string logFileName;
+            do
+            {
+                logFileName = Path.Combine(logDirectory, $"genetic_Result{logNumber}.csv");
+                logNumber++;
+            } while (File.Exists(logFileName));
+
+            return logFileName;
         }
 
         static void Main(string[] args)
@@ -289,7 +312,9 @@ namespace GeneticAlgorithm
                 clientCounts.Add(randomClient.Next(LowClient, HighClient));
 
             string logFileName = GetLogFileName();
-            int[,] bestSchedule = scheduler.Optimize(clientCounts, logFileName);
+            string resultFile = GetResultFileName();
+
+            int[,] bestSchedule = scheduler.Optimize(clientCounts, logFileName, resultFile);
 
             Console.WriteLine("Najlepszy harmonogram:");
             for (int i = 0; i < numEmployees; i++)
@@ -300,6 +325,7 @@ namespace GeneticAlgorithm
             }
 
             Console.WriteLine($"Log zapisany w: {logFileName}");
+            Console.WriteLine($"Wyniki zapisane w: {resultFile}");
             Console.ReadKey();
         }
     }
