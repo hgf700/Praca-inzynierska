@@ -1,5 +1,0 @@
-nie spelnienie wymagan kara punktowa np 10
-nie spelnienie preferecnji 1 
-wyslac 30 wynikowych
-lepiej zamieniac csv na json na wejsciu
-te samo experience i occupation dla uproszczenia
