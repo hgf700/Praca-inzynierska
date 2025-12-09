@@ -14,6 +14,9 @@ namespace GeneticAlgorithm
         private int generations = 100;
         private double mutationRate = 0.05;
 
+        private static int LowClient = 50;
+        private static int HighClient = 200;
+
         private static int numEmployees;
         private static int numActualDays;
         private const int numShiftsPerDay = 3;
@@ -103,6 +106,7 @@ namespace GeneticAlgorithm
                 int sum = 0;
                 for (int i = 0; i < numEmployees; i++)
                     sum += schedule[i, j];
+
                 int ideal = Math.Max(1, clientCounts[j] / 20);
                 totalError += Math.Abs(sum - ideal);
             }
@@ -153,7 +157,6 @@ namespace GeneticAlgorithm
                 int bestFitness = Fitness(population[0], clientCounts);
                 double avgFitness = population.Average(ind => Fitness(ind, clientCounts));
 
-                // Nowa populacja
                 List<int[,]> newPopulation = new List<int[,]>();
                 while (newPopulation.Count < populationSize)
                 {
@@ -166,14 +169,9 @@ namespace GeneticAlgorithm
 
                 population = newPopulation;
 
-                // Zapis do CSV
                 writer.WriteLine($"{gen + 1};{bestFitness};{Math.Round(avgFitness, 2).ToString().Replace('.', ',')};{mutationRate.ToString().Replace('.', ',')};{mutationCount}");
-            
-                
-            
             }
 
-            // Preferences
             writer.WriteLine();
             writer.WriteLine("Preferences");
             for (int i = 0; i < numEmployees; i++)
@@ -188,7 +186,6 @@ namespace GeneticAlgorithm
                 writer.WriteLine();
             }
 
-            // Requirements
             writer.WriteLine();
             writer.WriteLine("Requirements");
             writer.Write("LP;");
@@ -200,7 +197,6 @@ namespace GeneticAlgorithm
             }
             writer.WriteLine();
 
-            // Schedule (z najlepszym osobnikiem)
             writer.WriteLine();
             writer.WriteLine("Schedule");
 
@@ -210,13 +206,11 @@ namespace GeneticAlgorithm
                 writer.Write($"P{i + 1};");
                 for (int j = 0; j < numTimeSlots; j++)
                 {
-                    if (j >= finalSchedule.GetLength(1)) break; // blokada
                     writer.Write(finalSchedule[i, j]);
                     if (j < numTimeSlots - 1) writer.Write(';');
                 }
                 writer.WriteLine();
             }
-
 
             return population[0];
         }
@@ -227,24 +221,18 @@ namespace GeneticAlgorithm
             if (!Directory.Exists(logDirectory))
                 Directory.CreateDirectory(logDirectory);
 
-            int logNumber = 1;
-            string logFileName;
-            do
-            {
-                logFileName = Path.Combine(logDirectory, $"genetic_log{logNumber}.csv");
-                logNumber++;
-            } while (File.Exists(logFileName));
-            return logFileName;
+            return Path.Combine(logDirectory, $"genetic_log.csv");
         }
 
         static void Main(string[] args)
         {
             Program scheduler = new Program();
+
             Random randomClient = new Random();
 
             List<int> clientCounts = new List<int>();
             for (int i = 0; i < numShiftsPerDay * numActualDays; i++)
-                clientCounts.Add(randomClient.Next(10, 100));
+                clientCounts.Add(randomClient.Next(LowClient, HighClient));
 
             string logFileName = GetLogFileName();
             int[,] bestSchedule = scheduler.Optimize(clientCounts, logFileName);
