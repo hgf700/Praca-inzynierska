@@ -33,7 +33,16 @@ namespace GeneticAlgorithm
 
         static Program()
         {
-            string csv = "grafik_7d_3s_10emp.csv";
+            //grafik_30d_3s_11emp
+            //grafik_30d_3s_13emp
+            //grafik_30d_3s_15emp
+            //grafik_30d_3s_17emp
+            //grafik_30d_3s_20emp
+            //grafik_30d_3s_21emp
+            //grafik_30d_3s_24emp
+            //grafik_30d_3s_25emp
+            //grafik_30d_3s_30emp
+            string csv = "grafik_30d_3s_25emp.csv";
             string file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "Data", csv);
 
             if (!File.Exists(file))
@@ -277,12 +286,29 @@ namespace GeneticAlgorithm
             return sb.ToString();
         }
 
+        //static string GetLogFileName()
+        //{
+        //    string logDirectory = "../../../logi";
+        //    if (!Directory.Exists(logDirectory))
+        //        Directory.CreateDirectory(logDirectory);
+        //    return Path.Combine(logDirectory, $"genetic_log.csv");
+        //}
+
         static string GetLogFileName()
         {
             string logDirectory = "../../../logi";
             if (!Directory.Exists(logDirectory))
                 Directory.CreateDirectory(logDirectory);
-            return Path.Combine(logDirectory, $"genetic_log.csv");
+
+            int logNumber = 1;
+            string logFileName;
+            do
+            {
+                logFileName = Path.Combine(logDirectory, $"genetic_log{logNumber}.csv");
+                logNumber++;
+            } while (File.Exists(logFileName));
+
+            return logFileName;
         }
 
         static string GetResultFileName()

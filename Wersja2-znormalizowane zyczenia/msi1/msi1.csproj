@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Folder Include="LOGI_ALGORYTMU\" />
+    <Folder Include="Dane_csv\" />
     <Folder Include="wyniki\" />
   </ItemGroup>
 

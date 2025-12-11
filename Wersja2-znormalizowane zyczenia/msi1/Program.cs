@@ -33,7 +33,13 @@ class Program
 
     static Program()
     {
-        string file = @"..\..\..\..\grafik_7d_3s_10emp.csv";
+        //grafik_30d_3s_20emp
+        //grafik_30d_3s_21emp
+        //grafik_30d_3s_24emp
+        //grafik_30d_3s_25emp
+        //grafik_30d_3s_30emp
+        string fileName = "grafik_30d_3s_30emp";
+        string file = @$"..\..\..\..\msi1\Dane_csv\{fileName}.csv";
 
         requiredWorkersPerShiftDisplay = ReadRequirementsFromFile(file);
         employeePreferences = ReadPreferencesFromFile(file);
@@ -336,13 +342,29 @@ class Program
             return sb.ToString();
         }
 
+        //static string GetLogFileName()
+        //{
+        //    string logDirectory = "../../../LOGI_ALGORYTMU";
+        //    if (!Directory.Exists(logDirectory))
+        //        Directory.CreateDirectory(logDirectory);
+
+        //    string logFileName = Path.Combine(logDirectory, $"genetic_log.csv");
+        //    return logFileName;
+        //}
+
         static string GetLogFileName()
         {
             string logDirectory = "../../../LOGI_ALGORYTMU";
             if (!Directory.Exists(logDirectory))
                 Directory.CreateDirectory(logDirectory);
 
-            string logFileName = Path.Combine(logDirectory, $"genetic_log.csv");
+            int logNumber = 1;
+            string logFileName;
+            do
+            {
+                logFileName = Path.Combine(logDirectory, $"genetic_Logs{logNumber}.csv");
+                logNumber++;
+            } while (File.Exists(logFileName));
             return logFileName;
         }
 
