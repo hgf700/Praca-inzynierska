@@ -245,37 +245,43 @@ namespace GeneticScheduling
             Console.WriteLine("\nFinal Schedule:");
             PrintScheduleToConsole(population[0]);
         }
+
         static void SaveResultsToCsv(string fileName, int[,] finalSchedule)
         {
             using (StreamWriter writer = new StreamWriter(fileName, false, Encoding.UTF8))
             {
-                string header = GetShiftHeaders(",");
-                string[] headers = header.Split(',');
+                writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned");
 
-                writer.Write("Id,");
-                foreach (var h in headers) writer.Write($"P_{h},");
-                foreach (var h in headers) writer.Write($"FR_{h},");
-                foreach (var h in headers) writer.Write($"S_{h},");
-                writer.WriteLine("worker_fitness,mismatchWorkerRequirments,mismatchFirmRequirments");
+                int numDays = 30;
+                int shiftsPerDay = 3;
 
-                for (int i = 0; i < numEmployees; i++)
+                int id = 0;
+
+                for (int day = 1; day <= numDays; day++)
                 {
-                    writer.Write($"{i},");
-                    for (int j = 0; j < numTimeSlots; j++)
-                        writer.Write($"{employeePreferences[i, j]},");
-                    for (int j = 0; j < numTimeSlots; j++)
-                        writer.Write($"{requiredWorkersPerShiftDisplay[j]},");
-                    for (int j = 0; j < numTimeSlots; j++)
-                        writer.Write(finalSchedule[i, j] + (j < numTimeSlots - 1 ? "," : ""));
+                    for (int shift = 1; shift <= shiftsPerDay; shift++)
+                    {
+                        int slot = (day - 1) * shiftsPerDay + (shift - 1);
 
-                    int fitness = CalculateEmployeeFitnessNorm(finalSchedule, i);
-                    int workerMismatch = CalculateWorkersPenalty(finalSchedule);
-                    int firmMismatch = CalculatePreferenceBonus(finalSchedule) / FitnessConstants.EmployeePreferenceMultiplier;
+                        for (int worker = 0; worker < numEmployees; worker++)
+                        {
+                            int preference = employeePreferences[worker, slot];
+                            int requirement = requiredWorkersPerShiftDisplay[slot];
+                            int assigned = finalSchedule[worker, slot];
 
-                    writer.WriteLine($",{fitness},{workerMismatch},{firmMismatch}");
+                            writer.WriteLine(
+                                $"{id},{day},{shift},{worker + 1},{preference},{requirement},{assigned}"
+                            );
+
+                            id++;
+                        }
+                    }
                 }
             }
         }
+
+
+
 
         static string GetShiftHeaders(string delimiter)
         {
