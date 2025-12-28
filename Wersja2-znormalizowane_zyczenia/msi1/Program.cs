@@ -37,6 +37,7 @@ namespace GeneticScheduling
         static Program()
         {
             string fileName = "grafik_30d_3s_11emp";
+            string newfilename = $"result_{fileName}";
             string file = @$"..\..\..\..\msi1\Dane_csv\{fileName}.csv";
 
             requiredWorkersPerShiftDisplay = ReadRequirementsFromFile(file);
@@ -245,10 +246,9 @@ namespace GeneticScheduling
             Console.WriteLine("\nFinal Schedule:");
             PrintScheduleToConsole(population[0]);
         }
-
-        static void SaveResultsToCsv(string fileName, int[,] finalSchedule)
+        static void SaveResultsToCsv(string newfilename, int[,] finalSchedule)
         {
-            using (StreamWriter writer = new StreamWriter(fileName, false, Encoding.UTF8))
+            using (StreamWriter writer = new StreamWriter(newfilename, false, Encoding.UTF8))
             {
                 writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned");
 
