@@ -107,6 +107,10 @@ namespace GeneticScheduling
             string logFileName = GetLogFileName();
             string resultFileName = GetResultFileName();
 
+            int finalWorkerPenalty = 0;
+            //int finalWorkerPreference = 0;
+            double finalBestFitness = 0;
+
             using (StreamWriter writer = new StreamWriter(logFileName, false, Encoding.UTF8))
             {
                 writer.WriteLine($"Population size:;{populationSize}");
@@ -127,7 +131,9 @@ namespace GeneticScheduling
                     Parallel.For(0, populationSize, i =>
                     {
                         fitness[i] = CalculateFitness(population[i]);
+
                     });
+
 
                     // Sortuj populację według fitness malejąco (najlepszy pierwszy)
                     var sortedPairs = population.Zip(fitness, (sched, fit) => new { sched, fit })
@@ -140,6 +146,11 @@ namespace GeneticScheduling
                     double bestFitness = sortedFitness[0];
                     double averageFitness = sortedFitness.Average();
 
+                    finalBestFitness = bestFitness;
+                    finalWorkerPenalty = CalculateWorkersPenalty(population[0]);
+                    //finalWorkerPreference = CalculatePreferenceBonus(population[0]);
+
+
                     // Nowa populacja
                     int[][,] newPopulation = new int[populationSize][,];
 
@@ -150,18 +161,21 @@ namespace GeneticScheduling
                     // Krzyżowanie i mutacja – równolegle
                     Parallel.For(EliteCount, populationSize - totallyNewChildren, i =>
                     {
-                        int[,] parent1 = population[rand.Next(populationSize / 2)];
-                        int[,] parent2 = population[rand.Next(populationSize / 2)];
+                        var localRand = new Random(Guid.NewGuid().GetHashCode());
+
+                        int[,] parent1 = population[localRand.Next(populationSize / 2)];
+                        int[,] parent2 = population[localRand.Next(populationSize / 2)];
                         int[,] child = Crossover(parent1, parent2);
 
-                        if (rand.NextDouble() < mutationRate)
+                        if (localRand.NextDouble() < mutationRate)
                         {
                             child = Mutate(child);
-                            System.Threading.Interlocked.Increment(ref mutationCount);
+                            Interlocked.Increment(ref mutationCount);
                         }
 
                         newPopulation[i] = child;
                     });
+
 
                     // Całkowicie nowe osobniki
                     for (int i = populationSize - totallyNewChildren; i < populationSize; i++)
@@ -239,18 +253,25 @@ namespace GeneticScheduling
                 }
             }
 
-            SaveResultsToCsv(resultFileName, population[0]);
+            //SaveResultsToCsv(resultFileName, population[0], finalWorkerPenalty, finalWorkerPreference, finalBestFitness);
+            SaveResultsToCsv(resultFileName, population[0], finalWorkerPenalty, finalBestFitness);
+
 
             Console.WriteLine("\nInitial Schedule:");
             PrintScheduleToConsole(initpop);
             Console.WriteLine("\nFinal Schedule:");
             PrintScheduleToConsole(population[0]);
+
+
+
         }
-        static void SaveResultsToCsv(string newfilename, int[,] finalSchedule)
+        static void SaveResultsToCsv(string newfilename, int[,] finalSchedule, int finalWorkerPenalty, double fitness)
         {
             using (StreamWriter writer = new StreamWriter(newfilename, false, Encoding.UTF8))
             {
-                writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned");
+                //writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned,workerPenalty,workerPreference,sumFitnness");
+
+                writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned,singleWorkerFitness,finalWorkerPenalty,finalFitnness");
 
                 int numDays = 30;
                 int shiftsPerDay = 3;
@@ -265,12 +286,14 @@ namespace GeneticScheduling
 
                         for (int worker = 0; worker < numEmployees; worker++)
                         {
+                            int singleWorkerFitness = CalculateEmployeeFitnessNorm(finalSchedule, worker);
+
                             int preference = employeePreferences[worker, slot];
                             int requirement = requiredWorkersPerShiftDisplay[slot];
                             int assigned = finalSchedule[worker, slot];
 
                             writer.WriteLine(
-                                $"{id},{day},{shift},{worker + 1},{preference},{requirement},{assigned}"
+                                $"{id},{day},{shift},{worker + 1},{preference},{requirement},{assigned},{singleWorkerFitness},{finalWorkerPenalty},{fitness}"
                             );
 
                             id++;
