@@ -2,6 +2,8 @@ data_csv/*
 venv/
 pytaniaKordos.txt
 pomysl/
-venv/
 temp/
 .ipynb_checkpoints/
+**/.vs/
+**/bin/
+**/obj/
