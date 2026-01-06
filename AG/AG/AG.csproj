@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wyniki\" />
-    <Folder Include="LOGI_ALGORYTMU\" />
+    <Compile Remove="LOGI_ALGORYTMU\**" />
+    <Compile Remove="wyniki\**" />
+    <EmbeddedResource Remove="LOGI_ALGORYTMU\**" />
+    <EmbeddedResource Remove="wyniki\**" />
+    <None Remove="LOGI_ALGORYTMU\**" />
+    <None Remove="wyniki\**" />
   </ItemGroup>
 
 </Project>

@@ -8,4 +8,9 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="LOGI_ALGORYTMU\" />
+    <Folder Include="wyniki\" />
+  </ItemGroup>
+
 </Project>
