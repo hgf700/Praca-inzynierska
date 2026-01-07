@@ -35,7 +35,7 @@ public class GeneticAlgorithm
     public GeneticResult Run(CancellationToken token)
     {
         string fileName = "grafik_30d_3s_11emp";
-        string newfilename = $"result_{fileName}";
+        
         string file = @$"..\..\..\..\UI\Dane_csv\{fileName}.csv";
 
         requiredWorkersPerShiftDisplay = ReadRequirementsFromFile(file);
@@ -45,7 +45,6 @@ public class GeneticAlgorithm
         numActualDays = requiredWorkersPerShiftDisplay.Length / numShiftsPerDay;
         numTimeSlots = numActualDays * numShiftsPerDay;
         requiredWorkersPerShiftNumeric = (int[])requiredWorkersPerShiftDisplay.Clone();
-
 
         int[][,] population = new int[populationSize][,];
         for (int i = 0; i < populationSize; i++)
@@ -57,7 +56,6 @@ public class GeneticAlgorithm
         string resultFileName = GetResultFileName();
 
         int finalWorkerPenalty = 0;
-        //int finalWorkerPreference = 0;
         double finalBestFitness = 0;
 
         using (StreamWriter writer = new StreamWriter(logFileName, false, Encoding.UTF8))
@@ -147,7 +145,7 @@ public class GeneticAlgorithm
                 mutationRate = Math.Round(mutationRate, 3);
 
                 writer.WriteLine($"{gen + 1};{bestFitness};{averageFitness:F2};{mutationRate};{mutationCount}");
-                Console.WriteLine($"Gen {gen + 1} | Best: {bestFitness} | Avg: {averageFitness:F2} | MutRate: {mutationRate} | MutCount: {mutationCount}");
+                //Console.WriteLine($"Gen {gen + 1} | Best: {bestFitness} | Avg: {averageFitness:F2} | MutRate: {mutationRate} | MutCount: {mutationCount}");
 
                 mutationCount = 0;
                 population = newPopulation;
@@ -210,9 +208,9 @@ public class GeneticAlgorithm
         SaveResultsToCsv(resultFileName, population[0], finalWorkerPenalty, finalBestFitness);
 
 
-        Console.WriteLine("\nInitial Schedule:");
+        //Console.WriteLine("\nInitial Schedule:");
         PrintScheduleToConsole(initpop);
-        Console.WriteLine("\nFinal Schedule:");
+        //Console.WriteLine("\nFinal Schedule:");
         PrintScheduleToConsole(population[0]);
 
 
@@ -286,10 +284,7 @@ public class GeneticAlgorithm
         {
             string dir = "../../../wyniki";
             Directory.CreateDirectory(dir);
-            int num = 1;
-            string name;
-            do { name = Path.Combine(dir, $"genetic_Result{num}.csv"); num++; }
-            while (File.Exists(name));
+            string name = Path.Combine(dir, $"genetic_Result.csv"); 
             return name;
         }
 
@@ -381,18 +376,18 @@ public class GeneticAlgorithm
 
         static void PrintScheduleToConsole(int[,] schedule)
         {
-            Console.Write("  ");
+            //Console.Write("  ");
             for (int d = 1; d <= numActualDays; d++)
                 for (int s = 1; s <= numShiftsPerDay; s++)
                     Console.Write($"D{d}S{s}\t");
-            Console.WriteLine();
+            //Console.WriteLine();
 
             for (int i = 0; i < numEmployees; i++)
             {
-                Console.Write($"P{i + 1}\t");
+                //Console.Write($"P{i + 1}\t");
                 for (int j = 0; j < numTimeSlots; j++)
                     Console.Write(schedule[i, j] + "\t");
-                Console.WriteLine();
+                //Console.WriteLine();
             }
         }
         return new GeneticResult

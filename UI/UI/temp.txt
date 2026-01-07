@@ -1,0 +1,10 @@
+static string GetResultFileName()
+        {
+            string dir = "../../../wyniki";
+            Directory.CreateDirectory(dir);
+            int num = 1;
+            string name;
+            do { name = Path.Combine(dir, $"genetic_Result{num}.csv"); num++; }
+            while (File.Exists(name));
+            return name;
+        }

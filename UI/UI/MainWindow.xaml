@@ -8,17 +8,32 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
 
-        <Button x:Name="btnStart" Content="Press to start"
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Button Grid.Column="0" 
+          Grid.Row="0" 
+          x:Name="btnStart" Content="Press to start"
           Click="StartButton_Click" ClickMode="Press"
           Margin="5" Width="150"
           HorizontalAlignment="Left"
           Foreground="Green"/>
 
-        <!--<Button x:Name="btnStop" Content="Press to Stop"
+        <Button Grid.Column="1" 
+            Grid.Row="0" 
+            x:Name="btnStop" Content="Press to Stop"
             Click="StopButton_Click" ClickMode="Press"
             Margin="5" Width="150"
             HorizontalAlignment="Left"
-            Foreground="Green"/>-->
+            Foreground="Green"/>
     </Grid>
     
 </Window>
