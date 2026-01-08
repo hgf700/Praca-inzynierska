@@ -1,1 +1,1 @@
-pip install numpy notebook scikit-learn pandas tensorflow pythonnet
+pip install numpy notebook scikit-learn pandas tensorflow pythonnet tf2onnx

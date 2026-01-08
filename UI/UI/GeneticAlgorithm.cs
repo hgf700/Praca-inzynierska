@@ -221,7 +221,9 @@ public class GeneticAlgorithm
             {
                 //writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned,workerPenalty,workerPreference,sumFitnness");
 
-                writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned,singleWorkerFitness,finalWorkerPenalty,finalFitnness");
+                //writer.WriteLine("id,day,shift,worker_id,preference,requirements,assigned,singleWorkerFitness,finalWorkerPenalty,finalFitnness");
+
+                writer.WriteLine("day,shift,preference,requirements,assigned,singleWorkerFitness");
 
                 int numDays = 30;
                 int shiftsPerDay = 3;
@@ -242,8 +244,12 @@ public class GeneticAlgorithm
                             int requirement = requiredWorkersPerShiftDisplay[slot];
                             int assigned = finalSchedule[worker, slot];
 
+                            //writer.WriteLine(
+                            //    $"{id},{day},{shift},{worker + 1},{preference},{requirement},{assigned},{singleWorkerFitness},{finalWorkerPenalty},{fitness}"
+                            //);
+
                             writer.WriteLine(
-                                $"{id},{day},{shift},{worker + 1},{preference},{requirement},{assigned},{singleWorkerFitness},{finalWorkerPenalty},{fitness}"
+                                $"{day},{shift},{preference},{requirement},{assigned},{singleWorkerFitness}"
                             );
 
                             id++;
