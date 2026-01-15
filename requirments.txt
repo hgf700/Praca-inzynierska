@@ -1,1 +1,1 @@
-pip install numpy notebook scikit-learn pandas tensorflow pythonnet tf2onnx
+pip install numpy pandas scikit-learn tensorflow==2.13 pythonnet protobuf==3.20.3 notebook==6.5.3 jupyter_client==8.3.1 jupyter_server traitlets==5.9.0 tornado==6.2 ipykernel

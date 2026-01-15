@@ -38,21 +38,18 @@ namespace UI
 
         private Task StartNNWorker(CancellationToken token)
         {
+            var modelResult = GetModelResultFileName();
+
             return Task.Run(() =>
             {
-                dynamic model;
+                File.WriteAllText(modelResult, "day,shift,preference,requirements,singleWorkerFitness,prediction\n");
 
+                dynamic model;
                 using (Py.GIL())
                 {
                     dynamic tf = Py.Import("tensorflow");
-                    dynamic keras = tf.keras;
-                    model = keras.models.load_model(GetModel());
+                    model = tf.keras.models.load_model(GetModel());
                 }
-
-                var modelResult = GetModelResultFileName();
-                using var writer = new StreamWriter(modelResult, false, Encoding.UTF8) { AutoFlush = true };
-
-                writer.WriteLine("day,shift,preference,requirements,singleWorkerFitness,prediction");
 
                 while (!token.IsCancellationRequested)
                 {
@@ -70,10 +67,10 @@ namespace UI
                     }
 
                     string csvLine = $"{input[0]},{input[1]},{input[2]},{input[3]},{input[4]},{result}";
-                    writer.WriteLine(csvLine); 
+
+                    File.AppendAllText(modelResult, csvLine + Environment.NewLine);
                     outputQueue.Add(new float[] { (float)result });
                 }
-
             }, token);
         }
 
@@ -84,15 +81,15 @@ namespace UI
 
             var workerTask = StartNNWorker(cts.Token);
 
-            var ag = new GeneticAlgorithm();
-
             inputQueue.Add(new float[] { 1, 2, 3, 4, 5 });
             inputQueue.Add(new float[] { 2, 3, 4, 5, 6 });
             inputQueue.Add(new float[] { 3, 4, 5, 6, 7 });
 
+            var ag = new GeneticAlgorithm();
+
             try
             {
-                var result = await Task.Run(() => ag.Run(cts.Token));
+                var result = await Task.Run(() => ag.Run(inputQueue, outputQueue, cts.Token));
                 MessageBox.Show($"Best fitness: {result.BestFitness} AG completed");
             }
             catch (OperationCanceledException)

@@ -1,0 +1,52 @@
+//for (int i = 0; i < populationSize; i++)
+                //{
+                //    token.ThrowIfCancellationRequested();
+
+                //    // 1. Przygotuj dane wejœciowe dla modelu (musi byæ 5 wartoœci float)
+                //    // Na podstawie Twoich danych ucz¹cych: day, shift, preference, requirements, singleWorkerFitness
+                //    float[] features = new float[] {
+                //        1.0f, // Przyk³ad: dzieñ (musisz wyci¹gn¹æ realny dzieñ z grafiku)
+                //        1.0f, // Przyk³ad: zmiana
+                //        0.0f, // Przyk³ad: preferencja
+                //        7.0f, // Przyk³ad: wymagania
+                //        (float)CalculateEmployeeFitnessNorm(population[i], 0) // singleWorkerFitness
+                //    };
+
+                //    // 2. Wyœlij do Workera (to uruchomi zapis w CSV w MainWindow)
+                //    inputs.Add(features);
+
+                //    // 3. Odbierz wynik z sieci (to zablokuje AG, a¿ sieæ neuronowa odpowie)
+                //    float[] prediction = outputs.Take(token);
+
+                //    // 4. Ustaw fitness jako wynik z sieci
+                //    fitness[i] = prediction[0];
+                //}
+
+
+
+                // Wewn¹trz pêtli for (int gen = 0; gen < generations; gen++)
+double[] fitness = new double[populationSize];
+
+for (int i = 0; i < populationSize; i++)
+{
+    token.ThrowIfCancellationRequested();
+    
+    // 1. Przygotuj dane dla sieci (np. dla pierwszego pracownika w grafiku)
+    // Musisz dopasowaæ te dane do tego, na czym uczona by³a sieæ!
+    float[] features = new float[] { 
+        1, // day
+        1, // shift
+        employeePreferences[0, 0], // preference
+        requiredWorkersPerShiftNumeric[0], // requirement
+        CalculateEmployeeFitnessNorm(population[i], 0) // singleWorkerFitness
+    };
+
+    // 2. Wyœlij do Workera NN
+    inputs.Add(features);
+
+    // 3. Odbierz wynik (to zablokuje AG dopóki sieæ nie odpowie)
+    float[] prediction = outputs.Take(token);
+    
+    // 4. Przypisz wynik sieci jako fitness (lub sk³adow¹ fitnessu)
+    fitness[i] = prediction[0]; 
+}

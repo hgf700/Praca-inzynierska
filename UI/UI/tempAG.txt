@@ -1,0 +1,7 @@
+//Parallel.For(0, populationSize, new ParallelOptions
+                //{
+                //    CancellationToken = token
+                //}, i =>
+                //{
+                //    fitness[i] = CalculateFitness(population[i]);
+                //});

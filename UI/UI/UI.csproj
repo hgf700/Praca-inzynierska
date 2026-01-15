@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Folder Include="LOGI_ALGORYTMU\" />
+    <Folder Include="saved_model\" />
     <Folder Include="wyniki_modelu\" />
     <Folder Include="wyniki\" />
   </ItemGroup>

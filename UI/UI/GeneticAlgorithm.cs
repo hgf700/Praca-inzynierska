@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Text;
 
 namespace AG;
@@ -32,7 +33,7 @@ public class GeneticAlgorithm
     public const int workersPerDayPenalty = 50;
     public const int EmployeePreferenceMultiplier = 10;
 
-    public GeneticResult Run(CancellationToken token)
+    public GeneticResult Run(BlockingCollection<float[]> inputs, BlockingCollection<float[]> outputs, CancellationToken token)
     {
         string fileName = "grafik_30d_3s_11emp";
         
@@ -75,8 +76,9 @@ public class GeneticAlgorithm
             {
                 token.ThrowIfCancellationRequested();
 
-                // Oblicz fitness równolegle
+                // Wewnątrz metody Run(...) w pętli for (int gen = 0; gen < generations; gen++)
                 double[] fitness = new double[populationSize];
+
                 Parallel.For(0, populationSize, new ParallelOptions
                 {
                     CancellationToken = token
@@ -84,7 +86,6 @@ public class GeneticAlgorithm
                 {
                     fitness[i] = CalculateFitness(population[i]);
                 });
-
 
                 // Sortuj populację według fitness malejąco (najlepszy pierwszy)
                 var sortedPairs = population.Zip(fitness, (sched, fit) => new { sched, fit })
