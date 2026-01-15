@@ -40,10 +40,11 @@ namespace UI
         {
             var modelResult = GetModelResultFileName();
 
+            // Inicjalny nagłówek (tylko raz)
+            File.WriteAllText(modelResult, "day,shift,preference,requirements,singleWorkerFitness,prediction\n");
+
             return Task.Run(() =>
             {
-                File.WriteAllText(modelResult, "day,shift,preference,requirements,singleWorkerFitness,prediction\n");
-
                 dynamic model;
                 using (Py.GIL())
                 {
@@ -54,8 +55,14 @@ namespace UI
                 while (!token.IsCancellationRequested)
                 {
                     float[] input;
-                    try { input = inputQueue.Take(token); }
-                    catch (OperationCanceledException) { break; }
+                    try
+                    {
+                        input = inputQueue.Take(token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
 
                     double result;
                     using (Py.GIL())
@@ -66,9 +73,11 @@ namespace UI
                         result = pred[0][0].As<double>();
                     }
 
-                    string csvLine = $"{input[0]},{input[1]},{input[2]},{input[3]},{input[4]},{result}";
-
+                    // Zapis do CSV – dzień i zmiana jako przykładowe kolumny (dostosuj jeśli masz inne dane)
+                    string csvLine = $"{input[0]},{input[1]},{input[2]},{input[3]},{input[4]},{result:F6}";
                     File.AppendAllText(modelResult, csvLine + Environment.NewLine);
+
+                    // Opcjonalnie – zwróć wynik do kolejki wyjściowej (jeśli AG ma go potrzebować)
                     outputQueue.Add(new float[] { (float)result });
                 }
             }, token);
@@ -76,11 +85,12 @@ namespace UI
 
         private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
-
             cts = new CancellationTokenSource();
 
+            // Uruchom worker NN – teraz będzie czekał na dane
             var workerTask = StartNNWorker(cts.Token);
 
+            // Dodaj dane do kolejki wejściowej (np. z AG lub ręcznie)
             inputQueue.Add(new float[] { 1, 2, 3, 4, 5 });
             inputQueue.Add(new float[] { 2, 3, 4, 5, 6 });
             inputQueue.Add(new float[] { 3, 4, 5, 6, 7 });
@@ -90,14 +100,17 @@ namespace UI
             try
             {
                 var result = await Task.Run(() => ag.Run(inputQueue, outputQueue, cts.Token));
-                MessageBox.Show($"Best fitness: {result.BestFitness} AG completed");
+                MessageBox.Show($"Best fitness: {result.BestFitness}\nAG completed\nNN results saved to CSV");
             }
             catch (OperationCanceledException)
             {
-                MessageBox.Show("Alghorytm stopped");
+                MessageBox.Show("Algorytm zatrzymany");
             }
-            
-            cts.Cancel();
+
+            // Zakończ kolejkę wejściową – worker NN wyjdzie z pętli
+            inputQueue.CompleteAdding();
+
+            // Poczekaj na zakończenie worker NN
             await workerTask;
         }
 
