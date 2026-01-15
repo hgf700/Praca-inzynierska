@@ -1,143 +1,113 @@
 ﻿using AG;
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
+using Python.Runtime;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Tensorflow;
-using Tensorflow.Keras.Engine;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static Tensorflow.Binding;
 
-namespace UI;
-
-public partial class MainWindow : Window
+namespace UI
 {
-    BlockingCollection<float[]> inputQueue = new();
-    BlockingCollection<float[]> outputQueue = new();
-    CancellationTokenSource cts;
-    Task nnWorkerTask;
-    bool nnRunning = false;
-
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
-    }
+        BlockingCollection<float[]> inputQueue = new();
+        BlockingCollection<float[]> outputQueue = new();
+        CancellationTokenSource cts;
 
-    static string GetModelResultFileName()
-    {
-        string dir = "../../../wyniki_modelu";
-        Directory.CreateDirectory(dir);
-        string name = System.IO.Path.Combine(dir, $"model_Result.csv");
-        return name;
-    }
-
-    static string GetModel()
-    {
-        string dir = "../../../saved_model";
-        Directory.CreateDirectory(dir);
-        string name = System.IO.Path.Combine(dir, $"model.onnx");
-        return name;
-    }
-
-    private Task StartNNWorker(CancellationToken token)
-    {
-        return Task.Run(() =>
+        public MainWindow()
         {
-            var model = GetModel();
-            using var session = new InferenceSession(model);
+            InitializeComponent();
+            Runtime.PythonDLL = @"C:\Users\USER098\AppData\Local\Programs\Python\Python311\python311.dll";
+            PythonEngine.Initialize();
+        }
 
-            var modelResult = GetModelResultFileName();
+        static string GetModelResultFileName()
+        {
+            string dir = "../../../wyniki_modelu";
+            Directory.CreateDirectory(dir);
+            string name = System.IO.Path.Combine(dir, $"model_Result.csv");
+            return name;
+        }
 
-            using var writer = new StreamWriter(modelResult, false, Encoding.UTF8);
+        static string GetModel()
+        {
+            string dir = "../../../saved_model";
+            Directory.CreateDirectory(dir);
+            string name = System.IO.Path.Combine(dir, $"model.keras");
+            return name;
+        }
 
-            // 🔹 Nagłówek CSV
-            writer.WriteLine(
-                "day,shift,worker_id,preference,requirements,singleWorkerFitness,prediction"
-            );
+        private Task StartNNWorker(CancellationToken token)
+        {
+            return Task.Run(() =>
+            {
+                dynamic model;
+
+                using (Py.GIL())
+                {
+                    dynamic tf = Py.Import("tensorflow");
+                    dynamic keras = tf.keras;
+                    model = keras.models.load_model(GetModel());
+                }
+
+                var modelResult = GetModelResultFileName();
+                using var writer = new StreamWriter(modelResult, false, Encoding.UTF8) { AutoFlush = true };
+
+                writer.WriteLine("day,shift,preference,requirements,singleWorkerFitness,prediction");
+
+                while (!token.IsCancellationRequested)
+                {
+                    float[] input;
+                    try { input = inputQueue.Take(token); }
+                    catch (OperationCanceledException) { break; }
+
+                    double result;
+                    using (Py.GIL())
+                    {
+                        dynamic np = Py.Import("numpy");
+                        dynamic npInput = np.array(input).reshape(1, -1);
+                        dynamic pred = model.predict(npInput);
+                        result = pred[0][0].As<double>();
+                    }
+
+                    string csvLine = $"{input[0]},{input[1]},{input[2]},{input[3]},{input[4]},{result}";
+                    writer.WriteLine(csvLine); 
+                    outputQueue.Add(new float[] { (float)result });
+                }
+
+            }, token);
+        }
+
+        private async void StartButton_Click(object sender, RoutedEventArgs e)
+        {
+
+            cts = new CancellationTokenSource();
+
+            var workerTask = StartNNWorker(cts.Token);
+
+            var ag = new GeneticAlgorithm();
+
+            inputQueue.Add(new float[] { 1, 2, 3, 4, 5 });
+            inputQueue.Add(new float[] { 2, 3, 4, 5, 6 });
+            inputQueue.Add(new float[] { 3, 4, 5, 6, 7 });
 
             try
             {
-                foreach (var input in inputQueue.GetConsumingEnumerable(token))
-                {
-                    // 1️⃣ Tensor [1,6]
-                    var tensor = new DenseTensor<float>(
-                        input,
-                        new[] { 1, input.Length }
-                    );
-
-                    var inputs = new List<NamedOnnxValue>
-                {
-                    NamedOnnxValue.CreateFromTensor("input", tensor)
-                };
-
-                    // 2️⃣ Predykcja
-                    using var results = session.Run(inputs);
-                    float prediction = results.First().AsTensor<float>()[0];
-
-                    // 3️⃣ Zapis do CSV
-                    string csvLine =
-                        $"{input[0]},{input[1]},{input[2]},{input[3]},{input[4]},{input[5]},{prediction}";
-
-                    writer.WriteLine(csvLine);
-                    writer.Flush(); // ⬅️ ważne przy długim działaniu
-
-                    // 4️⃣ Opcjonalnie do kolejki
-                    outputQueue.Add(new[] { prediction }, token);
-                }
+                var result = await Task.Run(() => ag.Run(cts.Token));
+                MessageBox.Show($"Best fitness: {result.BestFitness} AG completed");
             }
             catch (OperationCanceledException)
             {
-                // graceful shutdown
+                MessageBox.Show("Alghorytm stopped");
             }
-        }, token);
-    }
-
-
-    private async void StartButton_Click(object sender, RoutedEventArgs e)
-    {
-
-        if (nnRunning)
-            return;
-
-        nnRunning = true;
-
-        cts = new CancellationTokenSource();
-
-        // 🔥 start NN worker
-        nnWorkerTask = StartNNWorker(cts.Token);
-
-        var ag = new GeneticAlgorithm();
-
-        try
-        {
-            var result = await Task.Run(() => ag.Run(cts.Token));
-            MessageBox.Show($"Best fitness: {result.BestFitness} AG completed");
+            
+            cts.Cancel();
+            await workerTask;
         }
-        catch (OperationCanceledException)
-        {
-            MessageBox.Show("Alghorytm stopped");
-        }
-        finally
-        {
-            nnRunning = false;
-        }
-    }
 
-    private void StopButton_Click(object sender, RoutedEventArgs e)
-    {
-        cts?.Cancel();
-        inputQueue.CompleteAdding();
+        private void StopButton_Click(object sender, RoutedEventArgs e)
+        {
+            cts?.Cancel();
+            inputQueue.CompleteAdding();
+        }
     }
 }
-
