@@ -33,7 +33,7 @@ public class GeneticAlgorithm
     public const int workersPerDayPenalty = 50;
     public const int EmployeePreferenceMultiplier = 10;
 
-    public GeneticResult Run(BlockingCollection<float[]> inputs, BlockingCollection<float[]> outputs, CancellationToken token)
+    public GeneticResult Run(CancellationToken token)
     {
         string fileName = "grafik_30d_3s_11emp";
         

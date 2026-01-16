@@ -18,10 +18,29 @@ namespace UI
             InitializeComponent();
             Runtime.PythonDLL = @"C:\Users\USER098\AppData\Local\Programs\Python\Python311\python311.dll";
             PythonEngine.Initialize();
+
+
+        }
+
+
+        void Pr()
+        {
+            File.WriteAllText(za,"")
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            process.StartInfo.FileName = "python";
+            process.StartInfo.Arguments = "pred.py";
+            process.Start();
+            process.WaitForExit();
+            string harm = File.ReadAllText("");
+
         }
 
         static string GetModelResultFileName()
         {
+           
+            
+            
+            
             string dir = "../../../wyniki_modelu";
             Directory.CreateDirectory(dir);
             string name = System.IO.Path.Combine(dir, $"model_Result.csv");
@@ -35,85 +54,96 @@ namespace UI
             string name = System.IO.Path.Combine(dir, $"model.keras");
             return name;
         }
-
-        private Task StartNNWorker(CancellationToken token)
+        static string GetResultFileName()
         {
-            var modelResult = GetModelResultFileName();
+            string dir = "../../../wyniki";
+            Directory.CreateDirectory(dir);
+            string name = Path.Combine(dir, $"genetic_Result.csv");
+            return name;
+        }
 
-            // Inicjalny nagłówek (tylko raz)
-            File.WriteAllText(modelResult, "day,shift,preference,requirements,singleWorkerFitness,prediction\n");
+        private void ProcessCsvWithNN(CancellationToken token)
+        {
+            var inputPath = GetResultFileName();      // Plik wejściowy z AG
+            var outputPath = GetModelResultFileName(); // Nowy plik z wynikami NN
 
-            return Task.Run(() =>
+            if (!File.Exists(inputPath))
             {
-                dynamic model;
-                using (Py.GIL())
-                {
-                    dynamic tf = Py.Import("tensorflow");
-                    model = tf.keras.models.load_model(GetModel());
-                }
+                MessageBox.Show("Plik wejściowy AG nie istnieje!");
+                return;
+            }
 
-                while (!token.IsCancellationRequested)
+            var lines = File.ReadAllLines(inputPath).ToList();
+            if (lines.Count <= 1) return;
+
+            string header = lines[0];
+            var dataRows = lines.Skip(1).ToList();
+
+            using (Py.GIL())
+            {
+                dynamic tf = Py.Import("tensorflow");
+                dynamic np = Py.Import("numpy");
+                dynamic model = tf.keras.models.load_model(GetModel());
+
+                StringBuilder sb = new StringBuilder();
+                // Dodajemy nową kolumnę do nagłówka
+                sb.AppendLine($"{header.TrimEnd()},prediction");
+
+                foreach (var line in dataRows)
                 {
-                    float[] input;
+                    if (token.IsCancellationRequested) break;
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
                     try
                     {
-                        input = inputQueue.Take(token);
+                        // Parsowanie danych wejściowych
+                        var values = line.Split(',').Select(s => float.Parse(s, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+
+                        // Przygotowanie danych (np. pierwsze 5 kolumn)
+                        var inputData = values.Take(5).ToArray();
+
+                        // Predykcja
+                        dynamic npInput = np.array(inputData).reshape(1, -1);
+                        dynamic pred = model.predict(npInput, verbose: 0);
+                        double prediction = pred[0][0].As<double>();
+
+                        // Zapisanie starej linii + nowa kolumna
+                        sb.AppendLine($"{line.TrimEnd()},{prediction.ToString("F6", System.Globalization.CultureInfo.InvariantCulture)}");
                     }
-                    catch (OperationCanceledException)
+                    catch (Exception ex)
                     {
-                        break;
+                        // Opcjonalnie: logowanie błędu parsowania konkretnej linii
+                        continue;
                     }
-
-                    double result;
-                    using (Py.GIL())
-                    {
-                        dynamic np = Py.Import("numpy");
-                        dynamic npInput = np.array(input).reshape(1, -1);
-                        dynamic pred = model.predict(npInput);
-                        result = pred[0][0].As<double>();
-                    }
-
-                    // Zapis do CSV – dzień i zmiana jako przykładowe kolumny (dostosuj jeśli masz inne dane)
-                    string csvLine = $"{input[0]},{input[1]},{input[2]},{input[3]},{input[4]},{result:F6}";
-                    File.AppendAllText(modelResult, csvLine + Environment.NewLine);
-
-                    // Opcjonalnie – zwróć wynik do kolejki wyjściowej (jeśli AG ma go potrzebować)
-                    outputQueue.Add(new float[] { (float)result });
                 }
-            }, token);
+
+                // Zapis do NOWEGO pliku
+                File.WriteAllText(outputPath, sb.ToString());
+            }
         }
 
         private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
             cts = new CancellationTokenSource();
-
-            // Uruchom worker NN – teraz będzie czekał na dane
-            var workerTask = StartNNWorker(cts.Token);
-
-            // Dodaj dane do kolejki wejściowej (np. z AG lub ręcznie)
-            inputQueue.Add(new float[] { 1, 2, 3, 4, 5 });
-            inputQueue.Add(new float[] { 2, 3, 4, 5, 6 });
-            inputQueue.Add(new float[] { 3, 4, 5, 6, 7 });
-
             var ag = new GeneticAlgorithm();
 
             try
             {
-                var result = await Task.Run(() => ag.Run(inputQueue, outputQueue, cts.Token));
-                MessageBox.Show($"Best fitness: {result.BestFitness}\nAG completed\nNN results saved to CSV");
+                // 1. Uruchom AG (zapisuje dane do CSV bez predykcji)
+                await Task.Run(() => ag.Run(cts.Token));
+
+                MessageBox.Show("AG zakończył generowanie danych. Teraz sieć neuronowa dokona oceny...");
+
+                // 2. Uruchom procesowanie CSV przez NN
+                await Task.Run(() => ProcessCsvWithNN(cts.Token));
+
+                MessageBox.Show("Proces zakończony! Wyniki dodane do pliku CSV.");
             }
-            catch (OperationCanceledException)
+            catch (Exception ex)
             {
-                MessageBox.Show("Algorytm zatrzymany");
+                MessageBox.Show($"Błąd: {ex.Message}");
             }
-
-            // Zakończ kolejkę wejściową – worker NN wyjdzie z pętli
-            inputQueue.CompleteAdding();
-
-            // Poczekaj na zakończenie worker NN
-            await workerTask;
         }
-
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
             cts?.Cancel();
