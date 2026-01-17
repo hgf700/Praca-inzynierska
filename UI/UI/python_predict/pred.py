@@ -34,7 +34,6 @@ predictions = model.predict(X)
 
 # --- Zapis do CSV ---
 df["prediction_flatten"] = predictions.flatten()     
-
 df["prediction_assigned"] = (predictions.flatten() > 0.5).astype(int)
 
 os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
