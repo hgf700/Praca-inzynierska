@@ -7,3 +7,4 @@ temp/
 **/.vs/
 **/bin/
 **/obj/
+**/venv/
