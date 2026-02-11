@@ -1,0 +1,20 @@
+Co psuje sens predykcji (najważniejsze)
+❌ assigned w wejściu
+
+Jeśli pytasz:
+
+„czy TEN worker POWINIEN dostać tę zmianę”
+
+to nie możesz mówić sieci, czy:
+
+historycznie dostał
+
+albo nie dostał
+
+Bo wtedy sieć uczy się:
+
+„czy decyzja była taka jak wcześniej”
+
+a nie:
+
+„czy decyzja była dobra”
