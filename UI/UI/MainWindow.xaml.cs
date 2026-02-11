@@ -24,7 +24,9 @@ public partial class MainWindow : Window
             //FileName=@"..\python_predict\venv\Scripts\python.exe",
             //WorkingDirectory = @"..\python_predict",
 
-            FileName = @"C:\Users\USER098\Documents\GitHub\genekordos\UI\UI\python_predict\venv\Scripts\python.exe",
+            //FileName = @"C:\Users\USER098\Documents\GitHub\genekordos\UI\UI\python_predict\venv\Scripts\python.exe",
+            FileName = @"C:\Users\USER098\Documents\GitHub\genekordos\venv\Scripts\python.exe",
+
             Arguments = "pred.py",
             WorkingDirectory = @"C:\Users\USER098\Documents\GitHub\genekordos\UI\UI\python_predict",
             RedirectStandardOutput = true,
