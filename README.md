@@ -1,6 +1,7 @@
-# Praca Inżynierska
+# Praca Inżynierska / Enginering Thesis
 
-This project is my engineering thesis developed at the university.
+This repository contains my engineering thesis project developed at the university.
+The project focuses on solving and optimizing the Job Scheduling Problem using a combination of genetic algorithms and neural networks.
 
 ## Overview
 
@@ -16,13 +17,19 @@ The main goal of the project is to simulate and optimize solutions for the **job
 - Genetic algorithm implementation for optimization
 - Fitness function tracking performance over iterations
 - Neural network trained to rate/score the scheduling solutions
+- Experimentation and visualization using Jupyter Notebook
 
-## Technologies
+## Programming Language
+- Python - implementation usage of neural networks and data processing
+- C# - frontend using WPF and logic for the genetic algorithm
 
-- Python (or specify your language)
-- NumPy / Pandas
-- TensorFlow / PyTorch (if used)
-- Matplotlib (for result visualization, if any)
+## Core Libraries
+- NumPy – numerical computations
+- Pandas – data processing and CSV handling
+- scikit-learn – initial experiments and data preprocessing
+- TensorFlow – neural network implementation
+- Matplotlib – result visualization
+- Jupyter Notebook – interactive experimentation and visualization
 
 ## Purpose
 

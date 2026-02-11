@@ -1,1 +1,1 @@
-pip install numpy pandas scikit-learn tensorflow pythonnet protobuf notebook jupyter_client jupyter_server traitlets tornado ipykernel joblib
+pip install numpy pandas scikit-learn tensorflow protobuf notebook jupyter_client jupyter_server traitlets tornado ipykernel joblib
